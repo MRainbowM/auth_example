@@ -1,0 +1,14 @@
+Django==5.1.1
+django-ninja==1.4
+django-cors-headers==4.0.0
+pydantic[email]==2.11.10
+environs==14.5.0
+uvicorn==0.34.0
+psycopg[binary]==3.3.2
+bcrypt==5.0.0
+uuid6==2024.7.10
+pytest<9
+pytest-asyncio==0.26.0
+pytest-django==4.4.0
+pytest-mock==3.14.0
+pytest-pythonpath==0.7.3

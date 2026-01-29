@@ -1,0 +1,13 @@
+sync:
+  auth-example-backend-sync:
+    alpha: ./backend
+    beta: docker://auth_example-backend-1/app
+    mode: two-way-resolved
+    ignore:
+      vcs: true
+      paths:
+        - __pycache__/
+        - .git/
+        - media/
+        - static/
+        - static_backend/ 

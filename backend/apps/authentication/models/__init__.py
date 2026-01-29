@@ -1,0 +1,1 @@
+from .token_blacklist_model import TokenBlacklist
