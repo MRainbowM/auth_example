@@ -2,7 +2,7 @@ from typing import Optional
 from uuid import UUID
 
 from ninja import Schema
-from pydantic import BaseModel, EmailStr
+from pydantic import EmailStr
 
 
 class RegisterSchema(Schema):
@@ -34,3 +34,11 @@ class LoginSchema(Schema):
     """
     email: EmailStr
     password: str
+
+
+class AuthTokensOutSchema(Schema):
+    """
+    Схема для вывода токенов аутентификации.
+    """
+    access: str
+    refresh: str

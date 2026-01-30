@@ -4,6 +4,7 @@ from .schemas import (
     RegisterSchema,
     UserOutSchema,
     LoginSchema,
+    AuthTokensOutSchema,
 )
 from .services.api_service import authentication_api_service
 
@@ -28,6 +29,7 @@ async def register(request, data: RegisterSchema):
 
 @router.post(
     '/login/',
+    response={200: AuthTokensOutSchema, 401: dict},
     summary='Вход в систему',
 )
 async def login(request, data: LoginSchema):

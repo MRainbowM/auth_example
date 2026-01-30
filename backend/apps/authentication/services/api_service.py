@@ -6,6 +6,7 @@ from apps.users.services.user_db_service import user_db_service
 from ninja.errors import HttpError
 
 from .authentication_service import authentication_service
+from .jwt_service import jwt_service, AuthTokens
 from ..exceptions import InvalidCredentialsError
 
 
@@ -46,14 +47,11 @@ class AuthenticationAPIService:
                 last_name=last_name or '',
                 patronymic=patronymic or '',
             )
-            print('----user----')
-            print(user)
-            print(user.__dict__)
             return user
         except UserAlreadyExists as e:
             raise HttpError(status_code=400, message=e.message)
 
-    async def login(self, password: str, email: str):
+    async def login(self, password: str, email: str) -> AuthTokens:
         """
         Вход в систему по email и паролю.
 
@@ -71,6 +69,8 @@ class AuthenticationAPIService:
                 status_code=401,
                 detail=e.message,
             )
+        auth_tokens = await jwt_service.create_auth_tokens(user)
+        return auth_tokens
 
 
 authentication_api_service = AuthenticationAPIService()

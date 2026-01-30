@@ -45,3 +45,7 @@ async def test_login_user():
         f'Статус: {response.status_code}. '
         f'Ответ: {response.json()}.'
     )
+
+    auth_tokens = response.json()
+    assert auth_tokens['access'] is not None
+    assert auth_tokens['refresh'] is not None
