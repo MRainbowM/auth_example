@@ -1,4 +1,5 @@
 from apps.authentication.api import router as authentication_router
+
 from apps.users.api import router as users_router
 from ninja import NinjaAPI
 

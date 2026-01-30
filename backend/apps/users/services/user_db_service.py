@@ -1,4 +1,5 @@
 from typing import Optional
+from uuid import UUID
 
 from apps.users.models import User
 from django.db import IntegrityError
@@ -62,6 +63,41 @@ class UserDBService:
         if not user:
             raise UserNotFound
 
+        return user
+
+    async def get_user_by_id(self, user_id: UUID) -> Optional[User]:
+        """
+        Получение пользователя по id.
+
+        :param user_id: ID пользователя.
+        :return: Пользователь.
+        """
+        return await self.model.objects.filter(id=user_id).afirst()
+
+    async def update_user(
+            self,
+            user: User,
+            first_name: Optional[str] = None,
+            last_name: Optional[str] = None,
+            patronymic: Optional[str] = None,
+    ) -> User:
+        """
+        Обновление информации о пользователе.
+
+        :param user: Пользователь.
+        :param first_name: Имя пользователя.
+        :param last_name: Фамилия пользователя.
+        :param patronymic: Отчество пользователя.
+        :return: Обновленный пользователь.
+        """
+        if first_name is not None:
+            user.first_name = first_name
+        if last_name is not None:
+            user.last_name = last_name
+        if patronymic is not None:
+            user.patronymic = patronymic
+
+        await user.asave()
         return user
 
 
