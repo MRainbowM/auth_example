@@ -95,3 +95,28 @@ async def test_logout_user(
         f'Статус: {response.status_code}. '
         f'Ответ: {response.json()}.'
     )
+
+
+@pytest.mark.django_db
+@pytest.mark.asyncio
+async def test_refresh_token(
+        auth_tokens_fixture: AuthTokens,
+):
+    """
+    Тест обновления токена.
+
+    :param auth_tokens_fixture: Фикстура токенов.
+    """
+    response = await async_client.post(
+        '/v1/authentication/refresh/',
+        headers={'Authorization': f'Bearer {auth_tokens_fixture.refresh}'},
+    )
+    assert response.status_code == 200, (
+        'Обновление токена не прошло. '
+        f'Статус: {response.status_code}. '
+        f'Ответ: {response.json()}.'
+    )
+
+    auth_tokens = response.json()
+    assert auth_tokens['access'] != auth_tokens_fixture.access is not None
+    assert auth_tokens['refresh'] != auth_tokens_fixture.refresh is not None

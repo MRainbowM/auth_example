@@ -1,4 +1,4 @@
-from config.jwt_auth import jwt_auth
+from config.jwt_auth import jwt_auth, refresh_jwt_auth
 from ninja import Router
 
 from .schemas import (
@@ -51,3 +51,15 @@ async def logout(request):
         token_data=request.auth.token_data
     )
     return 204, None
+
+
+@router.post(
+    '/refresh/',
+    response={200: AuthTokensOutSchema, 401: dict},
+    auth=refresh_jwt_auth,
+    summary='Обновление токена',
+)
+async def refresh(request):
+    return await authentication_api_service.refresh(
+        user=request.auth.user,
+    )

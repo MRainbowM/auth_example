@@ -71,7 +71,7 @@ class AuthenticationAPIService:
                 status_code=401,
                 message=e.message,
             )
-        auth_tokens = await jwt_service.create_auth_tokens(user)
+        auth_tokens = await jwt_service.create_auth_tokens(user=user)
         return auth_tokens
 
     async def logout(self, token_data: AuthTokenPayload) -> None:
@@ -82,6 +82,15 @@ class AuthenticationAPIService:
         :return: None.
         """
         await token_blacklist_db_service.add_token_to_blacklist(token_jti=token_data.jti)
+
+    async def refresh(self, user: User) -> AuthTokens:
+        """
+        Обновление токена.
+
+        :param user: Пользователь.
+        :return: Токены аутентификации.
+        """
+        return await jwt_service.create_auth_tokens(user=user)
 
 
 authentication_api_service = AuthenticationAPIService()
