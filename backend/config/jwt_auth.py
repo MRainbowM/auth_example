@@ -1,57 +1,49 @@
-from __future__ import annotations
+from typing import Optional
 
-from typing import Any, Optional
-from uuid import UUID
-
-import jwt
-from apps.authentication.constants import ACCESS_TOKEN_TYPE, REFRESH_TOKEN_TYPE
+from apps.authentication.constants import ACCESS_TOKEN_TYPE
+from apps.authentication.dataclasses import AuthData
+from apps.authentication.models import TokenBlacklist
+from apps.authentication.services.jwt_service import jwt_service
 from apps.users.models import User
-from config.settings import JWT_ALGORITHM, JWT_PUBLIC_KEY
+from ninja.security import HttpBearer
 
 
-async def jwt_auth(request) -> Optional[User]:
+class JWTAuth(HttpBearer):
     """
-    Асинхронная авторизация для Django Ninja через JWT в заголовке:
+    Bearer-auth для Django Ninja:
     Authorization: Bearer <token>
-
-    При успехе возвращает пользователя (будет доступен как request.auth),
-    при провале возвращает None (Ninja ответит 401).
     """
-    auth_header = (
-            request.headers.get("Authorization") or
-            request.META.get("HTTP_AUTHORIZATION")
-    )
-    if not auth_header:
-        return None
 
-    # Ожидается "Bearer <token>"
-    parts = auth_header.split()
-    if len(parts) != 2 or parts[0].lower() != "bearer":
-        return None
+    async def authenticate(self, request, token: str) -> Optional[AuthData]:
+        """
+        Аутентификация пользователя по токену.
 
-    token = parts[1]
-    access_token_type = ACCESS_TOKEN_TYPE
+        :param request: Запрос.
+        :param token: Токен.
+        :return: AuthData.
+        """
 
-    try:
-        payload: dict[str, Any] = jwt.decode(
-            token,
-            JWT_PUBLIC_KEY,
-            algorithms=[JWT_ALGORITHM],
-        )
-    except jwt.PyJWTError:
-        return None
+        token_data = await jwt_service.decode_token(token)
+        if not token_data:
+            return None
 
-    if payload.get("type") != access_token_type:
-        return None
+        if token_data.type != ACCESS_TOKEN_TYPE:
+            return None
 
-    sub = payload.get("sub")
-    if not sub:
-        return None
+        user = await User.objects.filter(
+            id=token_data.sub,
+            is_active=True,
+        ).afirst()
+        if not user:
+            return None
 
-    try:
-        user_id = UUID(str(sub))
-    except ValueError:
-        return None
+        # Поиск токена в TokenBlacklist
+        is_token_in_blacklist = await TokenBlacklist.objects.filter(token_jti=token_data.jti).aexists()
+        if is_token_in_blacklist:
+            # Токен отозван
+            return None
 
-    # Фильтруем пользователей по id и активности
-    return await User.objects.filter(id=user_id, is_active=True).afirst()
+        return AuthData(user=user, token_data=token_data)
+
+
+jwt_auth = JWTAuth()

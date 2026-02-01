@@ -1,5 +1,7 @@
 import pytest
+from apps.authentication.models import TokenBlacklist
 from apps.authentication.services.jwt_service import AuthTokens
+from apps.authentication.services.jwt_service import jwt_service
 from apps.users.models import User
 
 from .conftest import async_client
@@ -64,3 +66,47 @@ async def test_update_user(
     assert response_data['first_name'] == payload['first_name']
     assert response_data['last_name'] == payload['last_name']
     assert response_data['patronymic'] == payload['patronymic']
+
+
+@pytest.mark.django_db
+@pytest.mark.asyncio
+async def test_delete_user(
+        auth_tokens_fixture: AuthTokens,
+        user_fixture: User,
+):
+    """
+    Тест удаления текущего пользователя.
+
+    :param auth_tokens_fixture: Фикстура токенов.
+    :param user_fixture: Фикстура пользователя.
+    """
+    # Удаление пользователя.
+    response = await async_client.delete(
+        '/v1/users/me/',
+        headers={'Authorization': f'Bearer {auth_tokens_fixture.access}'},
+    )
+    assert response.status_code == 204, (
+        'Удаление текущего пользователя не прошло. '
+        f'Статус: {response.status_code}. '
+        f'Ответ: {response.json()}.'
+    )
+
+    # Проверка, что пользователь не может залогиниться после удаления.
+    response = await async_client.post(
+        '/v1/authentication/login/',
+        json={
+            'email': user_fixture.email,
+            'password': user_fixture.password_str,
+        },
+    )
+
+    assert response.status_code == 401, (
+        'Пользователь может залогиниться после удаления. '
+        f'Статус: {response.status_code}. '
+        f'Ответ: {response.json()}.'
+    )
+
+    # Проверка, что токен отозван
+    token_data = await jwt_service.decode_token(token=auth_tokens_fixture.access)
+    is_token_in_blacklist = await TokenBlacklist.objects.filter(token_jti=token_data.jti).aexists()
+    assert is_token_in_blacklist, 'Токен не добавлен в TokenBlacklist.'

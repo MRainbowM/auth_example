@@ -7,6 +7,8 @@ from ninja.errors import HttpError
 
 from .authentication_service import authentication_service
 from .jwt_service import jwt_service, AuthTokens
+from .token_blacklist_db_service import token_blacklist_db_service
+from ..dataclasses import AuthTokenPayload
 from ..exceptions import InvalidCredentialsError
 
 
@@ -67,10 +69,19 @@ class AuthenticationAPIService:
         except InvalidCredentialsError as e:
             raise HttpError(
                 status_code=401,
-                detail=e.message,
+                message=e.message,
             )
         auth_tokens = await jwt_service.create_auth_tokens(user)
         return auth_tokens
+
+    async def logout(self, token_data: AuthTokenPayload) -> None:
+        """
+        Выход из системы.
+
+        :param token_data: данные токена.
+        :return: None.
+        """
+        await token_blacklist_db_service.add_token_to_blacklist(token_jti=token_data.jti)
 
 
 authentication_api_service = AuthenticationAPIService()

@@ -1,6 +1,8 @@
 from typing import Optional
 from uuid import UUID
 
+from apps.authentication.dataclasses import AuthTokenPayload
+from apps.authentication.services.token_blacklist_db_service import token_blacklist_db_service
 from apps.users.models import User
 from ninja.errors import HttpError
 
@@ -52,6 +54,17 @@ class UsersAPIService:
             last_name=last_name,
             patronymic=patronymic,
         )
+
+    async def delete_user(self, user: User, token_data: AuthTokenPayload) -> None:
+        """
+        Удаление пользователя. Выход из системы.
+
+        :param user: Пользователь.
+        :param token_data: Данные токена.
+        :return: None.
+        """
+        await user_db_service.soft_delete_user(user=user)
+        await token_blacklist_db_service.add_token_to_blacklist(token_jti=token_data.jti)
 
 
 users_api_service = UsersAPIService()

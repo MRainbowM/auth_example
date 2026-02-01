@@ -1,3 +1,4 @@
+from config.jwt_auth import jwt_auth
 from ninja import Router
 
 from .schemas import (
@@ -37,3 +38,16 @@ async def login(request, data: LoginSchema):
         password=data.password,
         email=data.email,
     )
+
+
+@router.post(
+    '/logout/',
+    response={204: None, 401: dict},
+    auth=jwt_auth,
+    summary='Выход из системы',
+)
+async def logout(request):
+    await authentication_api_service.logout(
+        token_data=request.auth.token_data
+    )
+    return 204, None

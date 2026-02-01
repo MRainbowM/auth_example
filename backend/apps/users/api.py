@@ -15,7 +15,7 @@ router = Router(tags=['users'])
 )
 async def get_me(request):
     return await users_api_service.get_user(
-        user_id=request.auth.id,
+        user_id=request.auth.user.id,
     )
 
 
@@ -27,8 +27,22 @@ async def get_me(request):
 )
 async def update_me(request, data: UserUpdateSchema):
     return await users_api_service.update_user(
-        user_id=request.auth.id,
+        user_id=request.auth.user.id,
         first_name=data.first_name,
         last_name=data.last_name,
         patronymic=data.patronymic,
     )
+
+
+@router.delete(
+    '/me/',
+    response={204: None, 401: dict, 404: dict},
+    summary='Удаление текущего пользователя',
+    auth=jwt_auth,
+)
+async def delete_me(request):
+    await users_api_service.delete_user(
+        user=request.auth.user,
+        token_data=request.auth.token_data,
+    )
+    return 204, None

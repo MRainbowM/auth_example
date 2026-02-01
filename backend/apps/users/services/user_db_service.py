@@ -100,5 +100,15 @@ class UserDBService:
         await user.asave()
         return user
 
+    async def soft_delete_user(self, user: User) -> None:
+        """
+        Мягкое удаление пользователя.
+
+        :param user: Пользователь.
+        :return: None.
+        """
+        user.is_active = False
+        await user.asave()
+
 
 user_db_service = UserDBService()
