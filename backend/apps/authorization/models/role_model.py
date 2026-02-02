@@ -15,3 +15,6 @@ class Role(BaseModelAbstract):
     class Meta:
         verbose_name = 'Роль пользователя'
         verbose_name_plural = 'Роли пользователей'
+
+    def __str__(self):
+        return self.name

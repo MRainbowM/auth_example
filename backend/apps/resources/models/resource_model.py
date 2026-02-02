@@ -21,3 +21,6 @@ class Resource(BaseModelAbstract):
     class Meta:
         verbose_name = 'Ресурс'
         verbose_name_plural = 'Ресурсы'
+
+    def __str__(self):
+        return self.name

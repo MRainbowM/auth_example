@@ -28,7 +28,7 @@ class User(BaseModelAbstract):
     patronymic = models.CharField(
         'Отчество',
         max_length=128,
-        default='',
+        default='',¬
         blank=True,
     )
 
@@ -44,5 +44,5 @@ class User(BaseModelAbstract):
     )
 
     class Meta:
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
+        verbose_name = 'Пользователь системы'
+        verbose_name_plural = 'Пользователи системы'

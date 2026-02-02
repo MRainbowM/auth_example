@@ -39,6 +39,9 @@ async def user_owner_resource_fixture() -> User:
         email='owner@test.com',
         defaults={
             'password_hash': hashed_password,
+            'first_name': 'Василий',
+            'last_name': 'Васильев',
+            'patronymic': 'Васильевич',
         },
     )
     return user
