@@ -10,6 +10,18 @@ router = Router(tags=['resources'])
 
 
 @router.get(
+    '/',
+    response={200: list[ResourceOutSchema], 401: dict, 403: dict, 404: dict},
+    auth=jwt_auth,
+    summary='Получение списка всех ресурсов',
+    description='Метод доступен только авторизованным пользователям, имеющим право на чтение списка всех ресурсов; '
+                ' или пользователями - администраторам. Владельцы ресурса могут получить доступ к своему ресурсу.'
+)
+async def get_all_resources(request):
+    return await resource_api_service.get_all_resources(user=request.auth.user)
+
+
+@router.get(
     '/{resource_id}/',
     response={200: ResourceOutSchema, 401: dict, 403: dict, 404: dict},
     auth=jwt_auth,

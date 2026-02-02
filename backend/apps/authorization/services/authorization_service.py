@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from apps.authorization.constants import PERMISSIONS_LITERAL
 from apps.resources.models import Resource
 from apps.users.models import User
@@ -31,7 +33,7 @@ class AuthorizationService:
             return True
 
         # Получение списка ID ролей пользователя
-        roles = await role_db_service.get_roles_by_user(user=user)
+        roles = await role_db_service.get_list(user_id=user.id)
         role_ids = [role.id for role in roles]
 
         # Поиск права доступа ресурса по ролям пользователя
@@ -45,6 +47,26 @@ class AuthorizationService:
 
         # Нет доступа
         return False
+
+    async def get_all_resources_by_user_role(
+            self,
+            user: User,
+            permission: PERMISSIONS_LITERAL,
+    ) -> list[UUID]:
+        """
+        Получение списка всех доступных ресурсов пользователю с указанным правом доступа.
+        :param user: Пользователь.
+        :param permission: Право доступа.
+        :return: Список ресурсов.
+        """
+        roles = await role_db_service.get_list(user_id=user.id)
+        role_ids = [role.id for role in roles]
+
+        resource_ids = await role_permission_db_service.get_resources_by_roles(
+            role_ids=role_ids,
+            permission=permission
+        )
+        return resource_ids
 
 
 authorization_service = AuthorizationService()

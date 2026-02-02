@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from apps.authorization.constants import READ_PERMISSION
+from apps.authorization.constants import READ_PERMISSION, READ_ALL_PERMISSION
 from apps.authorization.services.authorization_service import authorization_service
 from apps.resources.models import Resource
 from apps.resources.services.resource_db_service import resource_db_service
@@ -12,6 +12,9 @@ class ResourceAPIService:
     """
     Сервис для работы с ресурсами.
     """
+
+    def __init__(self):
+        self.resource_return_fields = ['id', 'name']
 
     async def get_resource_by_id(
             self,
@@ -25,7 +28,10 @@ class ResourceAPIService:
         :param user: Пользователь.
         :return: Ресурс.
         """
-        resource = await resource_db_service.get_resource_by_id(resource_id=resource_id)
+        resource = await resource_db_service.get_by_id(
+            object_id=resource_id,
+            return_fields=self.resource_return_fields + ['owner_id'],
+        )
         if resource is None:
             raise HttpError(
                 status_code=404,
@@ -44,6 +50,29 @@ class ResourceAPIService:
                 message='Нет доступа.',
             )
         return resource
+
+    async def get_all_resources(
+            self,
+            user: User,
+    ) -> list[Resource]:
+        """
+        Получение списка всех доступных ресурсов пользователю.
+        :param user: Пользователь.
+        :return: Список ресурсов.
+        """
+        if user.is_admin:
+            # Администратор может получить доступ к любому ресурсу
+            return await resource_db_service.get_list(return_fields=self.resource_return_fields)
+
+        resource_ids = await authorization_service.get_all_resources_by_user_role(
+            user=user,
+            permission=READ_ALL_PERMISSION,  # Право на чтение списка всех ресурсов
+        )
+        resources = await resource_db_service.get_list(
+            resource_id__in=resource_ids,
+            return_fields=self.resource_return_fields,
+        )
+        return resources
 
 
 resource_api_service = ResourceAPIService()

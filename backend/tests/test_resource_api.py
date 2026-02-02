@@ -9,6 +9,36 @@ from .conftest import async_client
 
 @pytest.mark.django_db
 @pytest.mark.asyncio
+async def test_get_all_resources(
+        resource_fixture: Resource,
+        user_fixture: User,
+        auth_tokens_fixture: AuthTokens,
+):
+    """
+    Тест получения списка всех ресурсов пользователем, у которого есть право на чтение списка всех ресурсов.
+    """
+    # Удаление ресурсов, кроме тестируемого
+    await Resource.objects.exclude(id=resource_fixture.id).adelete()
+
+    # Установка права на чтение списка всех ресурсов
+    user_fixture.is_admin = True
+    await user_fixture.asave()
+
+    response = await async_client.get(
+        '/v1/resources/',
+        headers={
+            'Authorization': f'Bearer {auth_tokens_fixture.access}',
+        },
+    )
+    assert response.status_code == 200
+    response_data = response.json()
+    assert len(response_data) == 1
+    assert response_data[0]['id'] == str(resource_fixture.id)
+    assert response_data[0]['name'] == resource_fixture.name
+
+
+@pytest.mark.django_db
+@pytest.mark.asyncio
 async def test_get_resource_by_id(
         resource_fixture: Resource,
         user_fixture: User,

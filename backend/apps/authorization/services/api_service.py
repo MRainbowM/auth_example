@@ -17,6 +17,27 @@ class AuthorizationApiService:
     Сервис для работы с API авторизации.
     """
 
+    def __init__(self):
+        self.permission_return_fields = [
+            'id',
+            'read_permission',
+            'read_all_permission',
+            'create_permission',
+            'update_permission',
+            'update_all_permission',
+            'delete_permission',
+            'delete_all_permission'
+        ]
+
+        self.permission_role_return_fields = ['id', 'role__name']
+        self.permission_resource_return_fields = ['id', 'resource__name']
+
+        self.all_permission_return_fields = (
+                self.permission_return_fields +
+                self.permission_role_return_fields +
+                self.permission_resource_return_fields
+        )
+
     async def create_role(
             self,
             user: User,
@@ -51,7 +72,7 @@ class AuthorizationApiService:
                 status_code=403,
                 message='Доступ запрещен.',
             )
-        return await role_db_service.get_roles()
+        return await role_db_service.get_list(return_fields=['id', 'name'])
 
     async def get_permissions(self, user: User):
         """
@@ -67,7 +88,11 @@ class AuthorizationApiService:
                 status_code=403,
                 message='Доступ запрещен.',
             )
-        return await role_permission_db_service.get_all_permissions()
+        return await role_permission_db_service.get_list(
+            join_role=True,
+            join_resource=True,
+            return_fields=self.all_permission_return_fields,
+        )
 
     async def update_permission(
             self,
@@ -87,7 +112,13 @@ class AuthorizationApiService:
         :raises HttpError(404): Если права доступа не найдено.
         """
 
-        permission = await role_permission_db_service.get_permission_by_id(permission_id=permission_id)
+        permission = await role_permission_db_service.get_by_id(
+            object_id=permission_id,
+            join_resource=True,
+            join_role=True,
+            return_fields=self.all_permission_return_fields +
+                          ['resource__owner_id']
+        )
         if permission is None:
             raise HttpError(
                 status_code=404,
@@ -129,7 +160,7 @@ class AuthorizationApiService:
                 message='Доступ запрещен.',
             )
 
-        role = await role_db_service.get_role_by_id(role_id=data.role_id)
+        role = await role_db_service.get_by_id(object_id=data.role_id)
         if role is None:
             raise HttpError(
                 status_code=404,

@@ -2,10 +2,11 @@ from typing import Optional
 from uuid import UUID
 
 from apps.authorization.models import Role
-from apps.users.models import User
+from config.abstact_classes.abstract_db_service import AbstractDBService
+from django.db.models import Q
 
 
-class RoleDBService:
+class RoleDBService(AbstractDBService[Role]):
     """
     Сервис для работы с ролями.
     """
@@ -13,15 +14,23 @@ class RoleDBService:
     def __init__(self):
         self.model = Role
 
-    async def get_roles_by_user(self, user: User) -> list[Role]:
+    async def _get_filters(
+            self,
+            user_id: Optional[UUID] = None,
+            **kwargs
+    ) -> Q:
         """
-        Получение ролей пользователя.
+        Получение фильтров для роли.
 
-        :param user: Пользователь.
-        :return: Роли пользователя.
+        :param user_id: ID пользователя.
+        :return: Фильтры.
         """
-        qs = self.model.objects.filter(user_roles__user=user).all()
-        return [obj async for obj in qs]
+        filters = Q()
+
+        if user_id:
+            filters &= Q(user_roles__user_id=user_id)
+
+        return filters
 
     async def create_role(self, name: str) -> Role:
         """
@@ -30,22 +39,6 @@ class RoleDBService:
         :return: Созданная роль.
         """
         return await self.model.objects.acreate(name=name)
-
-    async def get_roles(self) -> list[Role]:
-        """
-        Получение списка ролей.
-        :return: Список ролей.
-        """
-        qs = self.model.objects.all()
-        return [obj async for obj in qs]
-
-    async def get_role_by_id(self, role_id: UUID) -> Optional[Role]:
-        """
-        Получение роли по id.
-        :param role_id: ID роли.
-        :return: Роль.
-        """
-        return await self.model.objects.filter(id=role_id).afirst()
 
 
 role_db_service = RoleDBService()

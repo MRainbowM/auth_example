@@ -2,9 +2,11 @@ from typing import Optional
 from uuid import UUID
 
 from apps.resources.models import Resource
+from config.abstact_classes.abstract_db_service import AbstractDBService
+from django.db.models import Q
 
 
-class ResourceDBService:
+class ResourceDBService(AbstractDBService[Resource]):
     """
     Сервис для работы с ресурсами.
     """
@@ -12,14 +14,22 @@ class ResourceDBService:
     def __init__(self):
         self.model = Resource
 
-    async def get_resource_by_id(self, resource_id: UUID) -> Optional[Resource]:
+    async def _get_filters(
+            self,
+            resource_id__in: Optional[list[UUID]] = None,
+    ) -> Q:
         """
-        Получение ресурса по id.
+        Получение фильтров для ресурса.
 
-        :param resource_id: ID ресурса.
-        :return: Ресурс.
+        :param resource_id__in: Список ID ресурсов.
+        :return: Фильтры.
         """
-        return await self.model.objects.filter(id=resource_id).afirst()
+        filters = Q()
+
+        if resource_id__in:
+            filters &= Q(id__in=resource_id__in)
+
+        return filters
 
 
 resource_db_service = ResourceDBService()

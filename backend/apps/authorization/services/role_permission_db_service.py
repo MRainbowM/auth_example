@@ -1,11 +1,14 @@
+from typing import List
 from typing import Optional
 from uuid import UUID
 
 from apps.authorization.constants import PERMISSIONS_LITERAL
 from apps.authorization.models import RolePermission
+from config.abstact_classes.abstract_db_service import AbstractDBService
+from django.db.models import Q
 
 
-class RolePermissionDBService:
+class RolePermissionDBService(AbstractDBService[RolePermission]):
     """
     Сервис для работы с базой данных прав доступа.
     """
@@ -13,21 +16,38 @@ class RolePermissionDBService:
     def __init__(self):
         self.model = RolePermission
 
-    async def get_all_permissions(self) -> list[RolePermission]:
+    async def _get_filters(
+            self,
+            **kwargs
+    ) -> Q:
         """
-        Получение всех прав доступа.
+        Получение фильтров для RolePermission.
         """
-        qs = self.model.objects.select_related('role', 'resource').all()
-        return [obj async for obj in qs]
+        filters = Q()
+        return filters
 
-    async def get_permission_by_id(self, permission_id: UUID) -> Optional[RolePermission]:
+    async def _get_select_related(
+            self,
+            join_role: Optional[bool] = None,
+            join_resource: Optional[bool] = None,
+            **kwargs
+    ) -> List[str]:
         """
-        Получение права доступа по id.
+        Получение select_related для RolePermission.
 
-        :param permission_id: ID права доступа.
-        :return: Право доступа.
+        :param join_role: Объединять с ролью.
+        :param join_resource: Объединять с ресурсом.
+        :return: Список select_related.
         """
-        return await self.model.objects.filter(id=permission_id).select_related('role', 'resource').afirst()
+        select_related = []
+
+        if join_role is True:
+            select_related.append('role')
+
+        if join_resource is True:
+            select_related.append('resource')
+
+        return select_related
 
     async def update_permission(
             self,
@@ -82,6 +102,31 @@ class RolePermissionDBService:
             role_id__in=role_ids,
             **{permission: True},
         ).aexists()
+
+    async def get_resources_by_roles(
+            self,
+            role_ids: list[UUID],
+            permission: PERMISSIONS_LITERAL,
+    ) -> list[UUID]:
+        """
+        Получение списка ID ресурсов, доступных для указанных ролей.
+
+        :param role_ids: Список ID ролей.
+        :param permission: Право доступа.
+        :return: Список ID ресурсов.
+        """
+        if not role_ids:
+            return []
+
+        qs = (
+            self.model.objects.filter(
+                role_id__in=role_ids,
+                **{permission: True},
+            )
+            .values_list('resource_id', flat=True)
+            .distinct()
+        )
+        return [resource_id async for resource_id in qs]
 
 
 role_permission_db_service = RolePermissionDBService()
