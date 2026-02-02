@@ -28,7 +28,7 @@ docker-compose exec backend python manage.py migrate
 ```
 
 ##### Создание суперпользователя
-```
+```shell
 docker-compose -f docker-compose.yml exec backend python manage.py createsuperuser
 ```
 

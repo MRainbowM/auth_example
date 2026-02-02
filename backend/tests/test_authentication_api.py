@@ -120,3 +120,24 @@ async def test_refresh_token(
     auth_tokens = response.json()
     assert auth_tokens['access'] != auth_tokens_fixture.access is not None
     assert auth_tokens['refresh'] != auth_tokens_fixture.refresh is not None
+
+
+@pytest.mark.django_db
+@pytest.mark.asyncio
+async def test_refresh_token_invalid_token(
+        auth_tokens_fixture: AuthTokens,
+):
+    """
+    Тест обновления токена с неверным типом токена.
+
+    :param auth_tokens_fixture: Фикстура токенов.
+    """
+    response = await async_client.post(
+        '/v1/authentication/refresh/',
+        headers={'Authorization': f'Bearer {auth_tokens_fixture.access}'},
+    )
+    assert response.status_code == 401, (
+        'Неверный ответ от сервера. '
+        f'Статус: {response.status_code}. '
+        f'Ответ: {response.json()}.'
+    )

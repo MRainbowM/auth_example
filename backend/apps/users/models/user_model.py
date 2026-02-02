@@ -37,6 +37,12 @@ class User(BaseModelAbstract):
         default=True,
     )
 
+    is_admin = models.BooleanField(
+        'Администратор системы',
+        default=False,
+        help_text='Администратор системы может управлять всеми ресурсами и пользователями.',
+    )
+
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
