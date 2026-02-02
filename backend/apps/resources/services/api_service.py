@@ -38,6 +38,10 @@ class ResourceAPIService:
                 message='Ресурс не найден.',
             )
 
+        if user.is_admin:
+            # Администратор может получить доступ к любому ресурсу
+            return resource
+
         # Проверка доступа пользователя к ресурсу
         is_access = await authorization_service.check_access(
             user=user,
@@ -68,10 +72,17 @@ class ResourceAPIService:
             user=user,
             permission=READ_ALL_PERMISSION,  # Право на чтение списка всех ресурсов
         )
+        if len(resource_ids) == 0:
+            raise HttpError(
+                status_code=403,
+                message='Нет доступа.',
+            )
+
         resources = await resource_db_service.get_list(
             resource_id__in=resource_ids,
             return_fields=self.resource_return_fields,
         )
+
         return resources
 
 

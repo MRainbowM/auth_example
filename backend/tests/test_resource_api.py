@@ -39,6 +39,57 @@ async def test_get_all_resources(
 
 @pytest.mark.django_db
 @pytest.mark.asyncio
+async def test_get_all_resources_owner(
+        resource_fixture: Resource,
+        auth_tokens_owner_fixture: AuthTokens,
+):
+    """
+    Тест получения списка всех ресурсов пользователем, который является владельцем ресурса.
+
+    :param resource_fixture: Фикстура ресурса.
+    :param auth_tokens_owner_fixture: Фикстура токенов авторизации пользователя, который является владельцем ресурса.
+    """
+    response = await async_client.get(
+        '/v1/resources/',
+        headers={
+            'Authorization': f'Bearer {auth_tokens_owner_fixture.access}',
+        },
+    )
+    assert response.status_code == 200
+    response_data = response.json()
+    assert len(response_data) == 1
+    assert response_data[0]['id'] == str(resource_fixture.id)
+    assert response_data[0]['name'] == resource_fixture.name
+
+
+@pytest.mark.django_db
+@pytest.mark.asyncio
+async def test_get_all_resources_not_allowed(
+        resource_fixture: Resource,
+        user_fixture: User,
+        auth_tokens_fixture: AuthTokens,
+):
+    """
+    Тест получения списка всех ресурсов пользователем, у которого нет права на чтение списка всех ресурсов.
+    """
+    # Установка статуса пользователя не администратор
+    user_fixture.is_admin = False
+    await user_fixture.asave()
+
+    # Удаление ролей пользователя
+    await UserRole.objects.filter(user=user_fixture).adelete()
+
+    response = await async_client.get(
+        '/v1/resources/',
+        headers={
+            'Authorization': f'Bearer {auth_tokens_fixture.access}',
+        },
+    )
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+@pytest.mark.asyncio
 async def test_get_resource_by_id(
         resource_fixture: Resource,
         user_fixture: User,

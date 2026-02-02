@@ -2,6 +2,7 @@ from uuid import UUID
 
 from apps.authorization.constants import PERMISSIONS_LITERAL
 from apps.resources.models import Resource
+from apps.resources.services.resource_db_service import resource_db_service
 from apps.users.models import User
 
 from .role_db_service import role_db_service
@@ -59,24 +60,33 @@ class AuthorizationService:
     ) -> list[UUID]:
         """
         Получение списка всех доступных ресурсов пользователю с указанным правом доступа.
+        Или где пользователь является владельцем ресурса.
+
         :param user: Пользователь.
         :param permission: Право доступа.
         :return: Список ресурсов.
         """
+        # Получение списка ресурсов, где пользователь является владельцем
+        resources = await resource_db_service.get_list(owner_id=user.id)
+        resource_ids = [resource.id for resource in resources]
+
+        # Получение списка ролей пользователя
         roles = await role_db_service.get_list(user_id=user.id)
         role_ids = [role.id for role in roles]
 
-        if len(role_ids) == 0:
-            # Пользователь не имеет ролей
-            return []
+        # Получение списка ресурсов, доступных пользователю по ролям
+        resources_by_role = []
 
-        role_permissions = await role_permission_db_service.get_list(
-            role_id__in=role_ids,
-            permission=permission,
-            join_resource=True,
-            return_fields=['resource_id'],
-        )
-        return [row.resource_id for row in role_permissions]
+        if len(role_ids) > 0:
+            role_permissions = await role_permission_db_service.get_list(
+                role_id__in=role_ids,
+                permission=permission,
+                join_resource=True,
+                return_fields=['resource_id'],
+            )
+            resources_by_role = [row.resource_id for row in role_permissions]
+
+        return set(resource_ids + resources_by_role)
 
 
 authorization_service = AuthorizationService()

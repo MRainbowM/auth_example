@@ -17,17 +17,22 @@ class ResourceDBService(AbstractDBService[Resource]):
     async def _get_filters(
             self,
             resource_id__in: Optional[list[UUID]] = None,
+            owner_id: Optional[UUID] = None,
     ) -> Q:
         """
         Получение фильтров для ресурса.
 
         :param resource_id__in: Список ID ресурсов.
+        :param owner_id: ID владельца ресурса.
         :return: Фильтры.
         """
         filters = Q()
 
         if resource_id__in:
             filters &= Q(id__in=resource_id__in)
+
+        if owner_id:
+            filters &= Q(owner_id=owner_id)
 
         return filters
 

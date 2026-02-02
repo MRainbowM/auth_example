@@ -27,7 +27,8 @@ async def get_all_resources(request):
     auth=jwt_auth,
     summary='Получение ресурса по id',
     description='Метод доступен только авторизованным пользователям. '
-                'Ресурс может получить владелец ресурса или пользователь с соответствующими правами доступа.',
+                'Ресурс может получить владелец ресурса или пользователь с соответствующими правами доступа. '
+                'Администратор может получить доступ к любому ресурсу.',
 )
 async def get_resource_by_id(request, resource_id: UUID):
     return await resource_api_service.get_resource_by_id(
