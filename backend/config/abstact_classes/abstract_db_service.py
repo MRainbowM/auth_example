@@ -31,12 +31,6 @@ class AbstractDBService(ABC, Generic[ModelType]):
         """
         return []
 
-    async def _get_prefetch_related(self, **kwargs) -> List[str]:
-        """
-        Абстрактный метод для получения prefetch_related, таблиц m-m.
-        """
-        return []
-
     async def _exclude(self, queryset: QuerySet[ModelType], **kwargs) -> QuerySet:
         """
         Абстрактный метод, который исключает строки по значение параметров.
@@ -67,10 +61,6 @@ class AbstractDBService(ABC, Generic[ModelType]):
         select_related_array = await self._get_select_related(**kwargs)
         if select_related_array:
             queryset = queryset.select_related(*select_related_array)
-
-        prefetch_related_array = await self._get_prefetch_related(**kwargs)
-        if prefetch_related_array:
-            queryset = queryset.prefetch_related(*prefetch_related_array)
 
         # Сортировка
         if order_by is not None:
