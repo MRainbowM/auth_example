@@ -33,3 +33,16 @@ class PermissionOutSchema(Schema):
     update_all_permission: bool
     delete_permission: bool
     delete_all_permission: bool
+
+
+class PermissionUpdateSchema(Schema):
+    """
+    Схема обновления прав доступа.
+    """
+    read_permission: bool
+    read_all_permission: bool
+    create_permission: bool
+    update_permission: bool
+    update_all_permission: bool
+    delete_permission: bool
+    delete_all_permission: bool

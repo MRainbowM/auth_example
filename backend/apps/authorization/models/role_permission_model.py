@@ -50,3 +50,6 @@ class RolePermission(BaseModelAbstract):
     class Meta:
         verbose_name = 'Право доступа роли к ресурсу'
         verbose_name_plural = 'Права доступа ролей к ресурсам'
+
+        # Уникальность сочетания роли и ресурса.
+        unique_together = ('role', 'resource')
