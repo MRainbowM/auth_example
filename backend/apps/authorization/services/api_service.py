@@ -176,7 +176,19 @@ class AuthorizationApiService:
 
         user_role = await user_role_db_service.create_user_role(user=user, role=role)
         # Получение связи пользователь-роль после создания для возврата в API
-        return await user_role_db_service.get_user_role_by_id(user_role_id=user_role.id)
+        return await user_role_db_service.get_by_id(
+            object_id=user_role.id,
+            join_user=True,
+            join_role=True,
+            return_fields=[
+                'id',
+                'user__id', 'role__id',
+                'user__first_name',
+                'user__last_name',
+                'user__patronymic',
+                'role__name',
+            ],
+        )
 
 
 authorization_api_service = AuthorizationApiService()
