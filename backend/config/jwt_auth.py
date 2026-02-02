@@ -7,8 +7,8 @@ from apps.authentication.constants import (
 )
 from apps.authentication.dataclasses import AuthData
 from apps.authentication.dataclasses import AuthTokenPayload
-from apps.authentication.models import TokenBlacklist
 from apps.authentication.services.jwt_service import jwt_service
+from apps.authentication.services.token_blacklist_db_service import token_blacklist_db_service
 from apps.users.models import User
 from django.utils import timezone
 from ninja.security import HttpBearer
@@ -75,7 +75,7 @@ class JWTAuth(HttpBearer):
             return None
 
         # Поиск токена в TokenBlacklist
-        is_token_in_blacklist = await TokenBlacklist.objects.filter(token_jti=token_data.jti).aexists()
+        is_token_in_blacklist = await token_blacklist_db_service.exists(token_jti=token_data.jti)
         if is_token_in_blacklist:
             # Токен отозван
             return None
