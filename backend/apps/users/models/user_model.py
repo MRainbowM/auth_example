@@ -28,7 +28,7 @@ class User(BaseModelAbstract):
     patronymic = models.CharField(
         'Отчество',
         max_length=128,
-        default='',¬
+        default='',
         blank=True,
     )
 

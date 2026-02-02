@@ -1,6 +1,27 @@
 # auth_example
 
+## Ссылки
+
+##### Сваггер
+
+```
+http://localhost:8080/api/docs#/
+```
+
+##### Админка Django
+
+```
+http://localhost:8080/admin/
+```
+
 ## Запуск проекта
+
+
+### Полный запуск проекта с созданием тестовых данных
+```shell
+make start
+```
+____
 
 ##### Создание дефолтных переменных окружения
 
@@ -81,18 +102,3 @@ mutagen sync list --long
 ```shell
 docker compose exec backend pytest
 ```
-
-## Ссылки
-
-##### Сваггер
-
-```
-http://localhost:8080/api/docs#/
-```
-
-##### Админка Django
-
-```
-http://localhost:8080/admin/
-```
-
