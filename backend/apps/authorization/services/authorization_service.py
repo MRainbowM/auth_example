@@ -36,9 +36,13 @@ class AuthorizationService:
         roles = await role_db_service.get_list(user_id=user.id)
         role_ids = [role.id for role in roles]
 
+        if len(role_ids) == 0:
+            # Пользователь не имеет ролей
+            return False
+
         # Поиск права доступа ресурса по ролям пользователя
-        if await role_permission_db_service.exists_permission(
-                role_ids=role_ids,
+        if await role_permission_db_service.exists(
+                role_id__in=role_ids,
                 resource_id=resource.id,
                 permission=permission,
         ):
@@ -62,11 +66,11 @@ class AuthorizationService:
         roles = await role_db_service.get_list(user_id=user.id)
         role_ids = [role.id for role in roles]
 
-        resource_ids = await role_permission_db_service.get_resources_by_roles(
-            role_ids=role_ids,
+        resources = await role_permission_db_service.get_list(
+            role_id__in=role_ids,
             permission=permission
         )
-        return resource_ids
+        return [resource.resource_id for resource in resources]
 
 
 authorization_service = AuthorizationService()

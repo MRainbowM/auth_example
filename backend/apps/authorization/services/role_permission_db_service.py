@@ -18,12 +18,30 @@ class RolePermissionDBService(AbstractDBService[RolePermission]):
 
     async def _get_filters(
             self,
+            role_id__in: Optional[list[UUID]] = None,
+            resource_id: Optional[UUID] = None,
+            permission: Optional[PERMISSIONS_LITERAL] = None,
             **kwargs
     ) -> Q:
         """
         Получение фильтров для RolePermission.
+
+        :param role_id__in: Список ID ролей.
+        :param resource_id: ID ресурса.
+        :param permission: Право доступа.
+        :return: Фильтры.
         """
         filters = Q()
+
+        if role_id__in:
+            filters &= Q(role_id__in=role_id__in)
+
+        if resource_id:
+            filters &= Q(resource_id=resource_id)
+
+        if permission:
+            filters &= Q(**{permission: True})
+
         return filters
 
     async def _get_select_related(
@@ -82,51 +100,6 @@ class RolePermissionDBService(AbstractDBService[RolePermission]):
         permission_in_db.delete_all_permission = delete_all_permission
         await permission_in_db.asave()
         return permission_in_db
-
-    async def exists_permission(
-            self,
-            role_ids: list[UUID],
-            resource_id: UUID,
-            permission: PERMISSIONS_LITERAL,
-    ) -> bool:
-        """
-        Проверка существования роли, имеющей права доступа к ресурсу.
-
-        :param role_ids: Список ID ролей.
-        :param resource_id: ID ресурса.
-        :param permission: Право доступа.
-        :return: True, если права доступа существуют, False в противном случае.
-        """
-        return await self.model.objects.filter(
-            resource_id=resource_id,
-            role_id__in=role_ids,
-            **{permission: True},
-        ).aexists()
-
-    async def get_resources_by_roles(
-            self,
-            role_ids: list[UUID],
-            permission: PERMISSIONS_LITERAL,
-    ) -> list[UUID]:
-        """
-        Получение списка ID ресурсов, доступных для указанных ролей.
-
-        :param role_ids: Список ID ролей.
-        :param permission: Право доступа.
-        :return: Список ID ресурсов.
-        """
-        if not role_ids:
-            return []
-
-        qs = (
-            self.model.objects.filter(
-                role_id__in=role_ids,
-                **{permission: True},
-            )
-            .values_list('resource_id', flat=True)
-            .distinct()
-        )
-        return [resource_id async for resource_id in qs]
 
 
 role_permission_db_service = RolePermissionDBService()
