@@ -1,9 +1,104 @@
 import pytest
 from apps.authentication.services.jwt_service import AuthTokens
+from apps.authorization.models.role_model import Role
 from apps.authorization.models.role_permission_model import RolePermission
 from apps.users.models import User
 
 from .conftest import async_client
+
+
+@pytest.mark.django_db
+@pytest.mark.asyncio
+async def test_create_user_role(
+        user_fixture: User,
+        auth_tokens_fixture: AuthTokens,
+        user_owner_resource_fixture: User,
+        role_fixture: Role,
+):
+    """
+    Тест назначения роли пользователю.
+
+    :param user_fixture: Фикстура пользователя, который инициирует запрос.
+    :param auth_tokens_fixture: Фикстура токенов авторизации.
+    :param user_owner_resource_fixture: Фикстура пользователя, которому назначается роль.
+    :param role_fixture: Фикстура роли.
+    """
+    # Установка роли администратора
+    user_fixture.is_admin = True
+    await user_fixture.asave()
+
+    payload = {
+        'user_id': user_owner_resource_fixture.id,
+        'role_id': role_fixture.id,
+    }
+    response = await async_client.post(
+        '/v1/authorization/user-roles/',
+        json=payload,
+        headers={
+            'Authorization': f'Bearer {auth_tokens_fixture.access}',
+        },
+    )
+    assert response.status_code == 200
+    response_data = response.json()
+    assert response_data['user']['id'] == str(user_owner_resource_fixture.id)
+    assert response_data['role']['id'] == str(role_fixture.id)
+
+
+@pytest.mark.django_db
+@pytest.mark.asyncio
+async def test_get_roles(
+        user_fixture: User,
+        auth_tokens_fixture: AuthTokens,
+        role_fixture: Role,
+):
+    """
+    Тест получения списка ролей.
+    """
+    # Удаление ролей, кроме тестируемой
+    await Role.objects.exclude(id=role_fixture.id).adelete()
+    # Установка роли администратора
+    user_fixture.is_admin = True
+    await user_fixture.asave()
+
+    response = await async_client.get(
+        '/v1/authorization/roles/',
+        headers={
+            'Authorization': f'Bearer {auth_tokens_fixture.access}',
+        },
+    )
+    assert response.status_code == 200
+    response_data = response.json()
+    assert len(response_data) == 1
+    assert response_data[0]['id'] == str(role_fixture.id)
+    assert response_data[0]['name'] == role_fixture.name
+
+
+@pytest.mark.django_db
+@pytest.mark.asyncio
+async def test_create_role(
+        user_fixture: User,
+        auth_tokens_fixture: AuthTokens,
+):
+    """
+    Тест создания роли.
+    """
+    user_fixture.is_admin = True
+    await user_fixture.asave()
+
+    payload = {
+        'name': 'Редактор',
+    }
+
+    response = await async_client.post(
+        '/v1/authorization/roles/',
+        json=payload,
+        headers={
+            'Authorization': f'Bearer {auth_tokens_fixture.access}',
+        },
+    )
+    assert response.status_code == 200
+    response_data = response.json()
+    assert response_data['name'] == payload['name']
 
 
 @pytest.mark.django_db

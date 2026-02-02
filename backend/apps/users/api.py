@@ -8,6 +8,17 @@ router = Router(tags=['users'])
 
 
 @router.get(
+    '/',
+    response={200: list[UserOutSchema], 401: dict, 403: dict},
+    summary='Получение списка пользователей',
+    auth=jwt_auth,
+    description='Метод доступен только админам системы.',
+)
+async def get_users(request):
+    return await users_api_service.get_users(user=request.auth.user)
+
+
+@router.get(
     '/me/',
     response={200: UserOutSchema, 401: dict, 404: dict},
     summary='Получение информации о текущем пользователе',

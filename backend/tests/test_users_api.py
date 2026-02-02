@@ -9,6 +9,49 @@ from .conftest import async_client
 
 @pytest.mark.django_db
 @pytest.mark.asyncio
+async def test_get_users(
+        user_fixture: User,
+        auth_tokens_fixture: AuthTokens,
+        user_owner_resource_fixture: User,
+):
+    """
+    Тест получения списка пользователей.
+
+    :param user_fixture: Фикстура пользователя, который инициирует запрос.
+    :param auth_tokens_fixture: Фикстура токенов авторизации.
+    :param user_owner_resource_fixture: Фикстура пользователя, который будет в списке пользователей.
+    """
+    # Установка роли администратора
+    user_fixture.is_admin = True
+    await user_fixture.asave()
+
+    response = await async_client.get(
+        '/v1/users/',
+        headers={'Authorization': f'Bearer {auth_tokens_fixture.access}'},
+    )
+    assert response.status_code == 200, (
+        'Получение списка пользователей не прошло. '
+        f'Статус: {response.status_code}. '
+        f'Ответ: {response.json()}.'
+    )
+    response_data = response.json()
+    assert len(response_data) == 2
+
+    for user in response_data:
+        if user['id'] == str(user_owner_resource_fixture.id):
+            assert user['email'] == user_owner_resource_fixture.email
+            assert user['first_name'] == user_owner_resource_fixture.first_name
+            assert user['last_name'] == user_owner_resource_fixture.last_name
+            assert user['patronymic'] == user_owner_resource_fixture.patronymic
+        else:
+            assert user['email'] != user_owner_resource_fixture.email
+            assert user['first_name'] != user_owner_resource_fixture.first_name
+            assert user['last_name'] != user_owner_resource_fixture.last_name
+            assert user['patronymic'] != user_owner_resource_fixture.patronymic
+
+
+@pytest.mark.django_db
+@pytest.mark.asyncio
 async def test_get_user(
         auth_tokens_fixture: AuthTokens,
         user_fixture: User,

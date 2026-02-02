@@ -3,11 +3,58 @@ from uuid import UUID
 from config.jwt_auth import jwt_auth
 from ninja import Router
 
-from .schemas import PermissionOutSchema
-from .schemas import PermissionUpdateSchema
+from .schemas import (
+    PermissionOutSchema,
+    RoleOutSchema,
+    RoleCreateSchema,
+    PermissionUpdateSchema,
+    UserRoleCreateSchema,
+    UserRoleOutSchema,
+)
 from .services.api_service import authorization_api_service
 
 router = Router(tags=['authorization'])
+
+
+@router.post(
+    '/user-roles/',
+    response={200: UserRoleOutSchema, 401: dict, 403: dict},
+    summary='Назначение роли пользователю',
+    auth=jwt_auth,
+    description='Метод доступен только админам системы.',
+)
+async def create_user_role(request, data: UserRoleCreateSchema):
+    return await authorization_api_service.create_user_role(
+        user=request.auth.user,
+        data=data,
+    )
+
+
+@router.get(
+    '/roles/',
+    response={200: list[RoleOutSchema], 401: dict, 403: dict},
+    summary='Получение списка ролей',
+    auth=jwt_auth,
+    description='Метод доступен только админам системы.',
+)
+async def get_roles(request):
+    return await authorization_api_service.get_roles(
+        user=request.auth.user,
+    )
+
+
+@router.post(
+    '/roles/',
+    response={200: RoleOutSchema, 401: dict, 403: dict},
+    summary='Создание роли',
+    auth=jwt_auth,
+    description='Метод доступен только админам системы.',
+)
+async def create_role(request, data: RoleCreateSchema):
+    return await authorization_api_service.create_role(
+        user=request.auth.user,
+        data=data,
+    )
 
 
 @router.get(

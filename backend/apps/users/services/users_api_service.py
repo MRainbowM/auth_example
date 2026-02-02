@@ -10,6 +10,23 @@ from .user_db_service import user_db_service
 
 
 class UsersAPIService:
+
+    async def get_users(self, user: User) -> list[User]:
+        """
+        Получение списка пользователей.
+
+        :param user: Пользователь.
+        :return: Список пользователей.
+        """
+
+        if user.is_admin is False:
+            raise HttpError(
+                status_code=403,
+                message='Доступ запрещен.',
+            )
+
+        return await user_db_service.get_users()
+
     async def get_user(self, user_id: UUID) -> User:
         """
         Получение информации о пользователе.

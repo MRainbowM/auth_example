@@ -110,5 +110,14 @@ class UserDBService:
         user.is_active = False
         await user.asave()
 
+    async def get_users(self) -> list[User]:
+        """
+        Получение списка пользователей.
+
+        :return: Список пользователей.
+        """
+        qs = self.model.objects.all()
+        return [obj async for obj in qs]
+
 
 user_db_service = UserDBService()

@@ -46,3 +46,37 @@ class PermissionUpdateSchema(Schema):
     update_all_permission: bool
     delete_permission: bool
     delete_all_permission: bool
+
+
+class RoleCreateSchema(Schema):
+    """
+    Схема создания роли.
+    """
+    name: str
+
+
+class UserRoleCreateSchema(Schema):
+    """
+    Схема создания связи пользователь↔роль.
+    """
+    user_id: UUID
+    role_id: UUID
+
+
+class UserOutSchema(Schema):
+    """
+    Схема пользователя.
+    """
+    id: UUID
+    first_name: str
+    last_name: str
+    patronymic: str
+
+
+class UserRoleOutSchema(Schema):
+    """
+    Схема связи пользователь↔роль.
+    """
+    id: UUID
+    user: UserOutSchema
+    role: RoleOutSchema
