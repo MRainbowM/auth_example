@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from apps.authorization.models import UserRole, Role
 from apps.users.models import User
-from config.abstact_classes.abstract_db_service import AbstractDBService
+from config.abstract_classes.abstract_db_service import AbstractDBService
 
 
 class UserRoleDBService(AbstractDBService[UserRole]):

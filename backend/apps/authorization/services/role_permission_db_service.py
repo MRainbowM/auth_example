@@ -4,7 +4,7 @@ from uuid import UUID
 
 from apps.authorization.constants import PERMISSIONS_LITERAL
 from apps.authorization.models import RolePermission
-from config.abstact_classes.abstract_db_service import AbstractDBService
+from config.abstract_classes.abstract_db_service import AbstractDBService
 from django.db.models import Q
 
 

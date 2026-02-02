@@ -1,6 +1,6 @@
 from typing import Optional
 
-from config.abstact_classes.abstract_db_service import AbstractDBService
+from config.abstract_classes.abstract_db_service import AbstractDBService
 from django.db.models import Q
 
 from ..models import TokenBlacklist

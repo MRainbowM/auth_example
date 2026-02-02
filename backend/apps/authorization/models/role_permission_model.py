@@ -1,5 +1,5 @@
 from apps.resources.models.resource_model import Resource
-from config.abstact_models import BaseModelAbstract
+from config.abstract_models import BaseModelAbstract
 from django.db import models
 
 from ..models import Role

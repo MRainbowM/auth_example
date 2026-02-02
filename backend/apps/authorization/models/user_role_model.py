@@ -1,6 +1,6 @@
 from apps.authorization.models import Role
 from apps.users.models import User
-from config.abstact_models import BaseModelAbstract
+from config.abstract_models import BaseModelAbstract
 from django.db import models
 
 

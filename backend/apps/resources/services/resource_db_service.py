@@ -2,7 +2,7 @@ from typing import Optional
 from uuid import UUID
 
 from apps.resources.models import Resource
-from config.abstact_classes.abstract_db_service import AbstractDBService
+from config.abstract_classes.abstract_db_service import AbstractDBService
 from django.db.models import Q
 
 
