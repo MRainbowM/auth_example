@@ -1,6 +1,7 @@
 from typing import Optional
 from uuid import UUID
 
+from apps.authorization.constants import PERMISSIONS_LITERAL
 from apps.authorization.models import RolePermission
 
 
@@ -61,6 +62,26 @@ class RolePermissionDBService:
         permission_in_db.delete_all_permission = delete_all_permission
         await permission_in_db.asave()
         return permission_in_db
+
+    async def exists_permission(
+            self,
+            role_ids: list[UUID],
+            resource_id: UUID,
+            permission: PERMISSIONS_LITERAL,
+    ) -> bool:
+        """
+        Проверка существования роли, имеющей права доступа к ресурсу.
+
+        :param role_ids: Список ID ролей.
+        :param resource_id: ID ресурса.
+        :param permission: Право доступа.
+        :return: True, если права доступа существуют, False в противном случае.
+        """
+        return await self.model.objects.filter(
+            resource_id=resource_id,
+            role_id__in=role_ids,
+            **{permission: True},
+        ).aexists()
 
 
 role_permission_db_service = RolePermissionDBService()

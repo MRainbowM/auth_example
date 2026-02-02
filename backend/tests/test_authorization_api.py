@@ -36,10 +36,12 @@ async def test_get_permissions(
     assert len(response_data) == 1
     assert response_data[0]['id'] == str(role_permission_fixture.id)
     assert response_data[0]['role']['id'] == str(
-        role_permission_fixture.role.id)
+        role_permission_fixture.role.id
+    )
     assert response_data[0]['role']['name'] == role_permission_fixture.role.name
     assert response_data[0]['resource']['id'] == str(
-        role_permission_fixture.resource.id)
+        role_permission_fixture.resource.id
+    )
     assert response_data[0]['resource']['name'] == role_permission_fixture.resource.name
     assert response_data[0]['read_permission'] == role_permission_fixture.read_permission
     assert response_data[0]['read_all_permission'] == role_permission_fixture.read_all_permission
